@@ -28,7 +28,7 @@ import "./components/baseComponents/Modal";
 import { GameStartingModal } from "./gameStartingModal";
 import "./styles.css";
 
-import { ChatModal } from "./ChatModal";
+import { ChatModal } from "./graphics/layers/ChatModal";
 
 export interface JoinLobbyEvent {
   clientID: string;

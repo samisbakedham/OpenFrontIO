@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import allianceIcon from "../../../../resources/images/AllianceIconWhite.svg";
+import chatIcon from "../../../../resources/images/ChatIconWhite.svg";
 import donateGoldIcon from "../../../../resources/images/DonateGoldIconWhite.svg";
 import donateTroopIcon from "../../../../resources/images/DonateTroopIconWhite.svg";
 import emojiIcon from "../../../../resources/images/EmojiIconWhite.svg";
@@ -26,6 +27,7 @@ import {
   SendTargetPlayerIntentEvent,
 } from "../../Transport";
 import { renderNumber, renderTroops } from "../../Utils";
+import { ChatModal } from "./ChatModal";
 import { EmojiTable } from "./EmojiTable";
 import { Layer } from "./Layer";
 
@@ -141,8 +143,12 @@ export class PlayerPanel extends LitElement implements Layer {
     return this;
   }
 
+  private ctModal;
+
   init() {
     this.eventBus.on(MouseUpEvent, (e: MouseEvent) => this.hide());
+
+    this.ctModal = document.querySelector("chat-modal") as ChatModal;
   }
 
   tick() {
@@ -279,6 +285,14 @@ export class PlayerPanel extends LitElement implements Layer {
 
             <!-- Action buttons -->
             <div class="flex justify-center gap-2">
+              <button
+                @click=${(e) => this.ctModal.open()}
+                class="w-10 h-10 flex items-center justify-center
+                           bg-opacity-50 bg-gray-700 hover:bg-opacity-70
+                           text-white rounded-lg transition-colors"
+              >
+                <img src=${chatIcon} alt="Target" class="w-6 h-6" />
+              </button>
               ${canTarget
                 ? html`<button
                     @click=${(e) => this.handleTargetClick(e, other)}

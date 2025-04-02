@@ -247,6 +247,17 @@ export class ChatModal extends LitElement {
   }
 
   public close() {
+    this.selectedCategory = null;
+    this.selectedPhraseText = null;
+    this.previewText = null;
+    this.requiresPlayerSelection = false;
+    this.selectedPlayer = null;
     this.modalEl?.close();
+  }
+
+  static open() {
+    const modal = new ChatModal();
+    document.body.appendChild(modal);
+    modal.open();
   }
 }
