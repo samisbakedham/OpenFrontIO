@@ -491,3 +491,66 @@ label.option-card:hover {
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+.chat-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-preview {
+  background: #222;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.chat-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-section-title {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.chat-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chat-option-button {
+  background: #444;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.chat-option-button.selected {
+  background: #66c;
+  color: white;
+}
+
+.chat-send {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.chat-send-button {
+  background: #4caf50;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+.chat-cancel-button {
+  background: #aaa;
+  color: black;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
