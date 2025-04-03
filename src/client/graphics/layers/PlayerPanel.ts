@@ -133,6 +133,11 @@ export class PlayerPanel extends LitElement implements Layer {
     });
   }
 
+  private handleChat(e: Event, sender: PlayerView, other: PlayerView) {
+    this.ctModal.open(sender, other);
+    this.hide();
+  }
+
   private handleTargetClick(e: Event, other: PlayerView) {
     e.stopPropagation();
     this.eventBus.emit(new SendTargetPlayerIntentEvent(other.id()));
@@ -286,7 +291,7 @@ export class PlayerPanel extends LitElement implements Layer {
             <!-- Action buttons -->
             <div class="flex justify-center gap-2">
               <button
-                @click=${(e) => this.ctModal.open()}
+                @click=${(e) => this.handleChat(e, myPlayer, other)}
                 class="w-10 h-10 flex items-center justify-center
                            bg-opacity-50 bg-gray-700 hover:bg-opacity-70
                            text-white rounded-lg transition-colors"

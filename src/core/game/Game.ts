@@ -412,6 +412,7 @@ export interface Player {
   playerProfile(): PlayerProfile;
   canBoat(tile: TileRef): boolean;
   tradingPorts(port: Unit): Unit[];
+  displayQuickChat(sender: Player, recipient: Player, message: string);
 }
 
 export interface Game extends GameMap {

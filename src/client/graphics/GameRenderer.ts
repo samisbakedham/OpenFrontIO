@@ -7,6 +7,7 @@ import { GameStartingModal } from "../gameStartingModal";
 import { TransformHandler } from "./TransformHandler";
 import { UIState } from "./UIState";
 import { BuildMenu } from "./layers/BuildMenu";
+import { ChatModal } from "./layers/ChatModal";
 import { ControlPanel } from "./layers/ControlPanel";
 import { EmojiTable } from "./layers/EmojiTable";
 import { EventsDisplay } from "./layers/EventsDisplay";
@@ -119,6 +120,13 @@ export function createRenderer(
   playerPanel.g = game;
   playerPanel.eventBus = eventBus;
   playerPanel.emojiTable = emojiTable;
+
+  const chatModal = document.querySelector("chat-modal") as ChatModal;
+  if (!(chatModal instanceof ChatModal)) {
+    console.error("chat modal not found");
+  }
+  chatModal.g = game;
+  chatModal.eventBus = eventBus;
 
   const layers: Layer[] = [
     new TerrainLayer(game),

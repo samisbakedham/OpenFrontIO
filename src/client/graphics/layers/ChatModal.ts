@@ -1,30 +1,21 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 
-const quickChatPhrases: Record<
-  string,
-  Array<{ text: string; requiresPlayer: boolean }>
-> = {
-  help: [
-    { text: "Please give me troops!", requiresPlayer: false },
-    { text: "Please give me golds!", requiresPlayer: false },
-    { text: "Please don't attack me!", requiresPlayer: false },
-  ],
-  attack: [
-    { text: "Attack [P1]!", requiresPlayer: true },
-    { text: "Launch a MIRV at [P1]!", requiresPlayer: true },
-    { text: "Focus fire on [P1]!", requiresPlayer: true },
-    { text: "Let's finish off [P1]!", requiresPlayer: true },
-  ],
-  defend: [{ text: "Defend [P1]!", requiresPlayer: true }],
-  greet: [{ text: "Hello!", requiresPlayer: false }],
-  misc: [
-    { text: "Let’s go!", requiresPlayer: false },
-    { text: "Nice strategy!", requiresPlayer: false },
-    { text: "This game is fun!", requiresPlayer: false },
-    { text: "When will my PR finally get merged...?", requiresPlayer: false },
-  ],
+import { GameView, PlayerView } from "../../../core/game/GameView";
+
+import quickChatData from "../../../../resources/QuickChat.json";
+import { EventBus } from "../../../core/EventBus";
+import { SendQuickChatEvent } from "../../Transport";
+
+type QuickChatPhrase = {
+  key: string;
+  text: string;
+  requiresPlayer: boolean;
 };
+
+type QuickChatPhrases = Record<string, QuickChatPhrase[]>;
+
+const quickChatPhrases: QuickChatPhrases = quickChatData;
 
 @customElement("chat-modal")
 export class ChatModal extends LitElement {
@@ -61,6 +52,13 @@ export class ChatModal extends LitElement {
   private selectedPhraseText: string | null = null;
   private selectedPlayer: string | null = null;
   private selectedPhraseTemplate: string | null = null;
+  private selectedQuickChatKey: string | null = null;
+
+  private recipient: PlayerView;
+  private sender: PlayerView;
+  public eventBus: EventBus;
+
+  public g: GameView;
 
   quickChatPhrases: Record<
     string,
@@ -195,9 +193,13 @@ export class ChatModal extends LitElement {
     this.requestUpdate();
   }
 
-  private selectPhrase(phrase: { text: string; requiresPlayer: boolean }) {
+  private selectPhrase(phrase: QuickChatPhrase) {
     this.selectedPhraseTemplate = phrase.text;
     this.selectedPhraseText = phrase.text;
+    this.selectedQuickChatKey = this.getFullQuickChatKey(
+      this.selectedCategory!,
+      phrase.key,
+    );
     this.previewText = phrase.text;
     this.requiresPlayerSelection = phrase.requiresPlayer;
     this.selectedPlayer = null;
@@ -219,6 +221,23 @@ export class ChatModal extends LitElement {
 
   private sendChatMessage() {
     console.log("Sent message:", this.previewText);
+    console.log("Sender:", this.sender);
+    console.log("Recipient:", this.recipient);
+    console.log("Key:", this.selectedQuickChatKey);
+
+    if (this.sender && this.recipient && this.selectedQuickChatKey) {
+      const variables = this.selectedPlayer ? { P1: this.selectedPlayer } : {};
+
+      this.eventBus.emit(
+        new SendQuickChatEvent(
+          this.sender,
+          this.recipient,
+          this.selectedQuickChatKey,
+          variables,
+        ),
+      );
+    }
+
     this.previewText = null;
     this.selectedCategory = null;
     this.requiresPlayerSelection = false;
@@ -242,7 +261,24 @@ export class ChatModal extends LitElement {
     return [...filtered, ...others];
   }
 
-  public open() {
+  private getFullQuickChatKey(category: string, phraseKey: string): string {
+    return `${category}.${phraseKey}`;
+  }
+
+  public open(sender?: PlayerView, recipient?: PlayerView) {
+    if (sender && recipient) {
+      console.log("Sent message:", recipient);
+      console.log("Sent message:", sender);
+      const alivePlayerNames = this.g
+        .players()
+        .filter((p) => p.isAlive())
+        .map((p) => p.data.name);
+
+      console.log("Alive player names:", alivePlayerNames);
+      this.players = alivePlayerNames;
+      this.recipient = recipient;
+      this.sender = sender;
+    }
     this.modalEl?.open();
   }
 
@@ -255,9 +291,11 @@ export class ChatModal extends LitElement {
     this.modalEl?.close();
   }
 
-  static open() {
-    const modal = new ChatModal();
-    document.body.appendChild(modal);
-    modal.open();
+  public setRecipient(value: PlayerView) {
+    this.recipient = value;
+  }
+
+  public setSender(value: PlayerView) {
+    this.sender = value;
   }
 }

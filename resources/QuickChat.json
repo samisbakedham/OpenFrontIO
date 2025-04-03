@@ -1,0 +1,39 @@
+{
+  "help": [
+    {
+      "key": "troops",
+      "text": "Please give me troops!",
+      "requiresPlayer": false
+    },
+    { "key": "gold", "text": "Please give me golds!", "requiresPlayer": false },
+    {
+      "key": "no_attack",
+      "text": "Please don't attack me!",
+      "requiresPlayer": false
+    }
+  ],
+  "attack": [
+    { "key": "attack", "text": "Attack [P1]!", "requiresPlayer": true },
+    { "key": "mirv", "text": "Launch a MIRV at [P1]!", "requiresPlayer": true },
+    { "key": "focus", "text": "Focus fire on [P1]!", "requiresPlayer": true },
+    {
+      "key": "finish",
+      "text": "Let's finish off [P1]!",
+      "requiresPlayer": true
+    }
+  ],
+  "defend": [
+    { "key": "defend", "text": "Defend [P1]!", "requiresPlayer": true }
+  ],
+  "greet": [{ "key": "hello", "text": "Hello!", "requiresPlayer": false }],
+  "misc": [
+    { "key": "go", "text": "Let’s go!", "requiresPlayer": false },
+    { "key": "strategy", "text": "Nice strategy!", "requiresPlayer": false },
+    { "key": "fun", "text": "This game is fun!", "requiresPlayer": false },
+    {
+      "key": "pr",
+      "text": "When will my PR finally get merged...?",
+      "requiresPlayer": false
+    }
+  ]
+}
