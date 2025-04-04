@@ -513,6 +513,7 @@ export enum MessageType {
   INFO,
   WARN,
   ERROR,
+  CHAT,
 }
 
 export interface NameViewData {

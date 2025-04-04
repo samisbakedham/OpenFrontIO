@@ -553,7 +553,7 @@ export class PlayerImpl implements Player {
   displayQuickChat(sender: Player, recipient: Player, message: string): void {
     this.mg.displayMessage(
       `${sender.name()}: ${message}`,
-      MessageType.INFO,
+      MessageType.CHAT,
       recipient.id(),
     );
   }

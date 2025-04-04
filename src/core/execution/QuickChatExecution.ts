@@ -60,6 +60,7 @@ export class QuickChatExecution implements Execution {
     fullKey: string,
     vars: Record<string, string>,
   ): string {
+    // Key for translation
     const [category, key] = fullKey.split(".");
     const phrases = quickChatData[category];
 
