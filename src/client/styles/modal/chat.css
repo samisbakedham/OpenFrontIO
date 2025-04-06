@@ -83,3 +83,12 @@
   gap: 6px;
   padding-right: 4px;
 }
+
+.phrase-scroll-area {
+  max-height: 234px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}

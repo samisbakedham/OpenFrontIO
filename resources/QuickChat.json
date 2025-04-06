@@ -5,10 +5,24 @@
       "text": "Please give me troops!",
       "requiresPlayer": false
     },
-    { "key": "gold", "text": "Please give me golds!", "requiresPlayer": false },
+    {
+      "key": "gold",
+      "text": "Please give me golds!",
+      "requiresPlayer": false
+    },
     {
       "key": "no_attack",
       "text": "Please don't attack me!",
+      "requiresPlayer": false
+    },
+    {
+      "key": "sorry_attack",
+      "text": "Sorry, I didn’t mean to attack.",
+      "requiresPlayer": false
+    },
+    {
+      "key": "alliance",
+      "text": "Alliance?",
       "requiresPlayer": false
     }
   ],
@@ -23,9 +37,37 @@
     }
   ],
   "defend": [
-    { "key": "defend", "text": "Defend [P1]!", "requiresPlayer": true }
+    {
+      "key": "defend",
+      "text": "Defend [P1]!",
+      "requiresPlayer": true
+    },
+    {
+      "key": "dont_attack",
+      "text": "Don’t attack [P1]!",
+      "requiresPlayer": true
+    },
+    {
+      "key": "ally",
+      "text": "[P1] is my ally!",
+      "requiresPlayer": true
+    }
   ],
-  "greet": [{ "key": "hello", "text": "Hello!", "requiresPlayer": false }],
+  "greet": [
+    { "key": "hello", "text": "Hello!", "requiresPlayer": false },
+    { "key": "good_luck", "text": "Good luck!", "requiresPlayer": false },
+    { "key": "have_fun", "text": "Have fun!", "requiresPlayer": false },
+    { "key": "gg", "text": "GG!", "requiresPlayer": false },
+    {
+      "key": "nice_to_meet",
+      "text": "Nice to meet you!",
+      "requiresPlayer": false
+    },
+    { "key": "well_played", "text": "Well played!", "requiresPlayer": false },
+    { "key": "hi_again", "text": "Hi again!", "requiresPlayer": false },
+    { "key": "bye", "text": "Bye!", "requiresPlayer": false },
+    { "key": "thanks", "text": "Thanks!", "requiresPlayer": false }
+  ],
   "misc": [
     { "key": "go", "text": "Let’s go!", "requiresPlayer": false },
     { "key": "strategy", "text": "Nice strategy!", "requiresPlayer": false },

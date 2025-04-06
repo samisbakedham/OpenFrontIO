@@ -119,19 +119,21 @@ export class ChatModal extends LitElement {
             ? html`
                 <div class="chat-column">
                   <div class="column-title">Phrase</div>
-                  ${this.getPhrasesForCategory(this.selectedCategory).map(
-                    (phrase) => html`
-                      <button
-                        class="chat-option-button ${this.selectedPhraseText ===
-                        phrase.text
-                          ? "selected"
-                          : ""}"
-                        @click=${() => this.selectPhrase(phrase)}
-                      >
-                        ${this.renderPhrasePreview(phrase)}
-                      </button>
-                    `,
-                  )}
+                  <div class="phrase-scroll-area">
+                    ${this.getPhrasesForCategory(this.selectedCategory).map(
+                      (phrase) => html`
+                        <button
+                          class="chat-option-button ${this
+                            .selectedPhraseText === phrase.text
+                            ? "selected"
+                            : ""}"
+                          @click=${() => this.selectPhrase(phrase)}
+                        >
+                          ${this.renderPhrasePreview(phrase)}
+                        </button>
+                      `,
+                    )}
+                  </div>
                 </div>
               `
             : null}
