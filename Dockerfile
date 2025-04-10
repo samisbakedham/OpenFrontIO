@@ -1,6 +1,7 @@
 # Use an official Node runtime as the base image
 FROM node:18
 
+
 ARG GIT_COMMIT=unknown
 ENV GIT_COMMIT=$GIT_COMMIT
 

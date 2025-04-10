@@ -11,7 +11,7 @@ fi
 
 # Configuration with fallbacks
 AWS_REGION=${AWS_REGION:-"eu-west-1"}
-ECR_REPO_NAME=${ECR_REPO_NAME:-"openfront"}
+ECR_REPO_NAME=${ECR_REPO_NAME:-"battlefront"}
 AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}
 ECR_REPO_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME"
 
