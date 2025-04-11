@@ -1,0 +1,49 @@
+name: Deploy to EC2 on Push
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image to ECR
+        env:
+          ECR_REGISTRY: 900932787286.dkr.ecr.us-east-2.amazonaws.com
+          ECR_REPOSITORY: battlefront
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: SSH into EC2 and restart Docker container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 900932787286.dkr.ecr.us-east-2.amazonaws.com
+            docker pull 900932787286.dkr.ecr.us-east-2.amazonaws.com/battlefront:latest
+            docker rm -f openfront || true
+            docker run -d \
+              --name openfront \
+              -p 80:80 -p 443:443 -p 3000-3006:3000-3006 \
+              -e ADMIN_TOKEN=meowmeow \
+              -e REGION=us-east-2 \
+              -e GIT_COMMIT=${{ github.sha }} \
+              -e GAME_ENV=prod \
+              -v /etc/letsencrypt:/etc/letsencrypt:ro \
+              -v /var/lib/letsencrypt:/var/lib/letsencrypt:ro \
+              900932787286.dkr.ecr.us-east-2.amazonaws.com/battlefront:latest
