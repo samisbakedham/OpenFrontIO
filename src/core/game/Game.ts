@@ -16,8 +16,11 @@ export type Gold = number;
 
 export const AllPlayers = "AllPlayers" as const;
 
+// export type GameUpdates = Record<GameUpdateType, GameUpdate[]>;
+// Create a type that maps GameUpdateType to its corresponding update type
 type UpdateTypeMap<T extends GameUpdateType> = Extract<GameUpdate, { type: T }>;
 
+// Then use it to create the record type
 export type GameUpdates = {
   [K in GameUpdateType]: UpdateTypeMap<K>[];
 };
@@ -74,6 +77,7 @@ export enum GameMode {
 
 export interface UnitInfo {
   cost: (player: Player | PlayerView) => Gold;
+  // Determines if its owner changes when its tile is conquered.
   territoryBound: boolean;
   maxHealth?: number;
   damage?: number;
@@ -125,6 +129,7 @@ export class Nation {
 
 export class Cell {
   public index: number;
+
   private strRepr: string;
 
   constructor(
@@ -135,7 +140,10 @@ export class Cell {
   }
 
   pos(): MapPos {
-    return { x: this.x, y: this.y };
+    return {
+      x: this.x,
+      y: this.y,
+    };
   }
 
   toString(): string {
@@ -176,6 +184,7 @@ export interface Attack {
   setTroops(troops: number): void;
   isActive(): boolean;
   delete(): void;
+  // The tile the attack originated from, mostly used for boat attacks.
   sourceTile(): TileRef | null;
 }
 
@@ -206,70 +215,87 @@ export class PlayerInfo {
     public readonly flag: string,
     public readonly name: string,
     public readonly playerType: PlayerType,
+    // null if bot.
     public readonly clientID: ClientID | null,
+    // TODO: make player id the small id
     public readonly id: PlayerID,
     public readonly nation?: Nation | null,
   ) {
-    const clanMatch = name.match(/^\[([A-Z]{2,5})\]/);
-    this.clan = clanMatch ? clanMatch[1] : null;
+    // Compute clan from name
+    if (!name.startsWith("[") || !name.includes("]")) {
+      this.clan = null;
+    } else {
+      const clanMatch = name.match(/^\[([A-Z]{2,5})\]/);
+      this.clan = clanMatch ? clanMatch[1] : null;
+    }
   }
 }
 
+// Some units have info specific to them
 export interface UnitSpecificInfos {
-  dstPort?: Unit;
-  detonationDst?: TileRef;
+  dstPort?: Unit; // Only for trade ships
+  detonationDst?: TileRef; // Only for nukes
   warshipTarget?: Unit;
   cooldownDuration?: number;
 }
 
 export interface Unit {
   id(): number;
+
+  // Properties
   type(): UnitType;
   troops(): number;
   owner(): Player;
   info(): UnitInfo;
+
+  // Location
   tile(): TileRef;
   lastTile(): TileRef;
   move(tile: TileRef): void;
+
+  // State
   isActive(): boolean;
   hasHealth(): boolean;
   health(): number;
   modifyHealth(delta: number): void;
-  setWarshipTarget(target: Unit): void;
+
+  setWarshipTarget(target: Unit): void; // warship only
   warshipTarget(): Unit;
+
   setCooldown(triggerCooldown: boolean): void;
   ticksLeftInCooldown(cooldownDuration: number): Tick;
   isCooldown(): boolean;
   setDstPort(dstPort: Unit): void;
-  dstPort(): Unit;
-  detonationDst(): TileRef;
+  dstPort(): Unit; // Only for trade ships
+  detonationDst(): TileRef; // Only for nukes
+
   setMoveTarget(cell: TileRef): void;
   moveTarget(): TileRef | null;
+
   setTargetedBySAM(targeted: boolean): void;
   targetedBySAM(): boolean;
+
+  // Mutations
   setTroops(troops: number): void;
   delete(displayerMessage?: boolean): void;
+
+  // Only for Construction type
   constructionType(): UnitType | null;
   setConstructionType(type: UnitType): void;
+
+  // Updates
   toUpdate(): UnitUpdate;
 }
 
 export interface TerraNullius {
   isPlayer(): false;
-  id(): PlayerID;
+  id(): PlayerID; // always zero, maybe make it TerraNulliusID?
   clientID(): ClientID;
   smallID(): number;
 }
 
-// ✅ New ChatMessage structure
-export interface ChatMessage {
-  senderID: number;
-  recipientID: number | typeof AllPlayers;
-  message: string;
-  createdAt: Tick;
-}
-
 export interface Player {
+  // Basic Info
   smallID(): number;
   info(): PlayerInfo;
   name(): string;
@@ -280,17 +306,23 @@ export interface Player {
   isPlayer(): this is Player;
   toString(): string;
 
+  // State & Properties
   isAlive(): boolean;
   isTraitor(): boolean;
   largestClusterBoundingBox: { min: Cell; max: Cell } | null;
   lastTileChange(): Tick;
+
   hasSpawned(): boolean;
   setHasSpawned(hasSpawned: boolean): void;
+
+  // Territory
   tiles(): ReadonlySet<TileRef>;
   borderTiles(): ReadonlySet<TileRef>;
   numTilesOwned(): number;
   conquer(tile: TileRef): void;
   relinquish(tile: TileRef): void;
+
+  // Resources & Population
   gold(): Gold;
   population(): number;
   workers(): number;
@@ -304,6 +336,8 @@ export interface Player {
   setTroops(troops: number): void;
   addTroops(troops: number): void;
   removeTroops(troops: number): number;
+
+  // Units
   units(...types: UnitType[]): Unit[];
   unitsIncludingConstruction(type: UnitType): Unit[];
   canBuild(type: UnitType, targetTile: TileRef): TileRef | false;
@@ -314,6 +348,8 @@ export interface Player {
     unitSpecificInfos?: UnitSpecificInfos,
   ): Unit;
   captureUnit(unit: Unit): void;
+
+  // Relations & Diplomacy
   neighbors(): (Player | TerraNullius)[];
   sharesBorderWith(other: Player | TerraNullius): boolean;
   relation(other: Player): Relation;
@@ -321,6 +357,7 @@ export interface Player {
   updateRelation(other: Player, delta: number): void;
   decayRelations(): void;
   isOnSameTeam(other: Player): boolean;
+  // Either allied or on same team.
   isFriendly(other: Player): boolean;
   team(): Team | null;
   clan(): string | null;
@@ -333,21 +370,31 @@ export interface Player {
   canSendAllianceRequest(other: Player): boolean;
   breakAlliance(alliance: Alliance): void;
   createAllianceRequest(recipient: Player): AllianceRequest;
+
+  // Targeting
   canTarget(other: Player): boolean;
   target(other: Player): void;
   targets(): Player[];
   transitiveTargets(): Player[];
+
+  // Communication
   canSendEmoji(recipient: Player | typeof AllPlayers): boolean;
   outgoingEmojis(): EmojiMessage[];
   sendEmoji(recipient: Player | typeof AllPlayers, emoji: string): void;
+
+  // Donation
   canDonate(recipient: Player): boolean;
   donateTroops(recipient: Player, troops: number): void;
   donateGold(recipient: Player, gold: number): void;
+
+  // Embargo
   hasEmbargoAgainst(other: Player): boolean;
   tradingPartners(): Player[];
   addEmbargo(other: PlayerID): void;
   stopEmbargo(other: PlayerID): void;
   canTrade(other: Player): boolean;
+
+  // Attacking.
   canAttack(tile: TileRef): boolean;
   createAttack(
     target: Player | TerraNullius,
@@ -358,22 +405,24 @@ export interface Player {
   incomingAttacks(): Attack[];
   orderRetreat(attackID: string): void;
   executeRetreat(attackID: string): void;
+
+  // Misc
   toUpdate(): PlayerUpdate;
   playerProfile(): PlayerProfile;
   canBoat(tile: TileRef): boolean;
   tradingPorts(port: Unit): Unit[];
-
-  // ✅ New chat method
-  sendChatMessage(recipient: Player | typeof AllPlayers, message: string): void;
 }
 
 export interface Game extends GameMap {
+  // Map & Dimensions
   isOnMap(cell: Cell): boolean;
   width(): number;
   height(): number;
   map(): GameMap;
   miniMap(): GameMap;
   forEachTile(fn: (tile: TileRef) => void): void;
+
+  // Player Management
   player(id: PlayerID): Player;
   players(): Player[];
   allPlayers(): Player[];
@@ -383,12 +432,17 @@ export interface Game extends GameMap {
   addPlayer(playerInfo: PlayerInfo): Player;
   terraNullius(): TerraNullius;
   owner(ref: TileRef): Player | TerraNullius;
+
   teams(): Team[];
+
+  // Game State
   ticks(): Tick;
   inSpawnPhase(): boolean;
   executeNextTick(): GameUpdates;
   setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats): void;
   config(): Config;
+
+  // Units
   units(...types: UnitType[]): Unit[];
   unitInfo(type: UnitType): UnitInfo;
   nearbyUnits(
@@ -396,18 +450,20 @@ export interface Game extends GameMap {
     searchRange: number,
     types: UnitType | UnitType[],
   ): Array<{ unit: Unit; distSquared: number }>;
+
   addExecution(...exec: Execution[]): void;
   displayMessage(
     message: string,
     type: MessageType,
     playerID: PlayerID | null,
   ): void;
-  nations(): Nation[];
-  numTilesWithFallout(): number;
-  stats(): Stats;
 
-  // ✅ New chat method
-  broadcastChatMessage(msg: ChatMessage): void;
+  // Nations
+  nations(): Nation[];
+
+  numTilesWithFallout(): number;
+  // Optional as it's not initialized before the end of spawn phase
+  stats(): Stats;
 }
 
 export interface PlayerActions {
