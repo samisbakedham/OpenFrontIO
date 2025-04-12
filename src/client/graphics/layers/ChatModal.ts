@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { customElement, query } from "lit/decorators.js";
+import { customElement, queryAsync } from "lit/decorators.js";
 
 import quickChatData from "../../../../resources/QuickChat.json";
 import { EventBus } from "../../../core/EventBus";
@@ -18,10 +18,13 @@ const quickChatPhrases: QuickChatPhrases = quickChatData;
 
 @customElement("chat-modal")
 export class ChatModal extends LitElement {
-  @query("o-modal") private modalEl!: HTMLElement & {
-    open: () => void;
-    close: () => void;
-  };
+  @queryAsync("o-modal")
+  private modalElPromise!: Promise<
+    HTMLElement & {
+      open: () => void;
+      close: () => void;
+    }
+  >;
 
   createRenderRoot() {
     return this;
@@ -58,16 +61,7 @@ export class ChatModal extends LitElement {
   public eventBus: EventBus;
   public g: GameView;
 
-  quickChatPhrases: Record<
-    string,
-    Array<{ text: string; requiresPlayer: boolean }>
-  > = {
-    help: [{ text: "Please give me troops!", requiresPlayer: false }],
-    attack: [{ text: "Attack [P1]!", requiresPlayer: true }],
-    defend: [{ text: "Defend [P1]!", requiresPlayer: true }],
-    greet: [{ text: "Hello!", requiresPlayer: false }],
-    misc: [{ text: "Let's go!", requiresPlayer: false }],
-  };
+  quickChatPhrases: QuickChatPhrases = quickChatData;
 
   private categories = [
     { id: "help", name: "Help" },
@@ -97,15 +91,14 @@ export class ChatModal extends LitElement {
           <div class="chat-column">
             <div class="column-title">Category</div>
             ${this.categories.map(
-              (category) => html`
+              (cat) => html`
                 <button
-                  class="chat-option-button ${this.selectedCategory ===
-                  category.id
+                  class="chat-option-button ${this.selectedCategory === cat.id
                     ? "selected"
                     : ""}"
-                  @click=${() => this.selectCategory(category.id)}
+                  @click=${() => this.selectCategory(cat.id)}
                 >
-                  ${category.name}
+                  ${cat.name}
                 </button>
               `,
             )}
@@ -167,6 +160,7 @@ export class ChatModal extends LitElement {
         <div class="chat-preview">
           ${this.previewText || "Build your message..."}
         </div>
+
         <div class="chat-send">
           <button
             class="chat-send-button"
@@ -215,15 +209,9 @@ export class ChatModal extends LitElement {
     }
   }
 
-  private sendChatMessage() {
-    console.log("Sent message:", this.previewText);
-    console.log("Sender:", this.sender);
-    console.log("Recipient:", this.recipient);
-    console.log("Key:", this.selectedQuickChatKey);
-
+  private async sendChatMessage() {
     if (this.sender && this.recipient && this.selectedQuickChatKey) {
       const variables = this.selectedPlayer ? { P1: this.selectedPlayer } : {};
-
       this.eventBus.emit(
         new SendQuickChatEvent(
           this.sender,
@@ -237,7 +225,7 @@ export class ChatModal extends LitElement {
     this.previewText = null;
     this.selectedCategory = null;
     this.requiresPlayerSelection = false;
-    this.close();
+    await this.close();
   }
 
   private onPlayerSearchInput(e: Event) {
@@ -250,7 +238,7 @@ export class ChatModal extends LitElement {
     return `${category}.${phraseKey}`;
   }
 
-  public open(sender?: PlayerView, recipient?: PlayerView) {
+  public async open(sender?: PlayerView, recipient?: PlayerView) {
     if (sender && recipient) {
       const alivePlayerNames = this.g
         .players()
@@ -261,24 +249,20 @@ export class ChatModal extends LitElement {
       this.recipient = recipient;
       this.sender = sender;
     }
-    if (this.modalEl?.open) {
-      this.modalEl.open();
-    } else {
-      console.warn("Modal element not available at open()");
-    }
+
+    const modal = await this.modalElPromise;
+    modal?.open?.();
   }
 
-  public close() {
+  public async close() {
     this.selectedCategory = null;
     this.selectedPhraseText = null;
     this.previewText = null;
     this.requiresPlayerSelection = false;
     this.selectedPlayer = null;
-    if (this.modalEl?.close) {
-      this.modalEl.close();
-    } else {
-      console.warn("Modal element not available at close()");
-    }
+
+    const modal = await this.modalElPromise;
+    modal?.close?.();
   }
 
   public setRecipient(value: PlayerView) {
