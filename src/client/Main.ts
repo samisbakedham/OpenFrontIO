@@ -215,7 +215,7 @@ class Client {
         startingModal.show();
       },
       () => {
-        this.joinModal.close();
+        this.joinModal?.close();
         this.publicLobby.stop();
         document.querySelectorAll(".ad").forEach((ad) => {
           (ad as HTMLElement).style.display = "none";
