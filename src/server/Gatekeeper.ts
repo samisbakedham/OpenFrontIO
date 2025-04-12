@@ -1,9 +1,6 @@
 // src/server/Security.ts
 import { NextFunction, Request, Response } from "express";
-import fs from "fs";
 import http from "http";
-import path from "path";
-import { fileURLToPath } from "url";
 
 export enum LimiterType {
   Get = "get",
@@ -29,65 +26,17 @@ export interface Gatekeeper {
 let gk: Gatekeeper = null;
 
 async function getGatekeeperCached(): Promise<Gatekeeper> {
-  if (gk != null) {
-    return gk;
-  }
+  if (gk != null) return gk;
   return getGatekeeper().then((g) => {
     gk = g;
     return gk;
   });
 }
 
-// Function to get the appropriate security middleware implementation
+// Forces use of NoOpGatekeeper to allow unrestricted access
 async function getGatekeeper(): Promise<Gatekeeper> {
-  try {
-    // Get the current file's directory
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-
-    try {
-      // Check if the file exists before attempting to import it
-      const realMiddlewarePath = path.resolve(
-        __dirname,
-        "./gatekeeper/RealGatekeeper.js",
-      );
-      const tsMiddlewarePath = path.resolve(
-        __dirname,
-        "./gatekeeper/RealGatekeeper.ts",
-      );
-
-      if (
-        !fs.existsSync(realMiddlewarePath) &&
-        !fs.existsSync(tsMiddlewarePath)
-      ) {
-        console.log("RealGatekeeper file not found, using NoOpGatekeeper");
-        return new NoOpGatekeeper();
-      }
-
-      // Use dynamic import for ES modules
-      // Using a type assertion to avoid TypeScript errors for optional modules
-      const module = await import(
-        "./gatekeeper/RealGatekeeper.js" as string
-      ).catch(() => import("./gatekeeper/RealGatekeeper.js" as string));
-
-      if (!module || !module.RealGatekeeper) {
-        console.log(
-          "RealGatekeeper class not found in module, using NoOpGatekeeper",
-        );
-        return new NoOpGatekeeper();
-      }
-
-      console.log("Successfully loaded real gatekeeper");
-      return new module.RealGatekeeper();
-    } catch (error) {
-      console.log("Failed to load real gatekeeper:", error);
-      return new NoOpGatekeeper();
-    }
-  } catch (e) {
-    // Fall back to no-op if real implementation isn't available
-    console.log("using no-op gatekeeper", e);
-    return new NoOpGatekeeper();
-  }
+  console.log("⚠️ Using NoOpGatekeeper — all traffic is allowed.");
+  return new NoOpGatekeeper();
 }
 
 export class GatekeeperWrapper implements Gatekeeper {
@@ -108,7 +57,6 @@ export class GatekeeperWrapper implements Gatekeeper {
     };
   }
 
-  // Corrected implementation for WebSocket handler wrapper
   wsHandler(
     req: http.IncomingMessage | string,
     fn: (message: string) => Promise<void>,
@@ -126,12 +74,11 @@ export class GatekeeperWrapper implements Gatekeeper {
 }
 
 export class NoOpGatekeeper implements Gatekeeper {
-  // Simple pass-through with no rate limiting
   httpHandler(
     limiterType: LimiterType,
     fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
   ) {
-    return async (req: Request, res: Response, next: NextFunction) => {
+    return async (req, res, next) => {
       try {
         await fn(req, res, next);
       } catch (error) {
@@ -140,7 +87,6 @@ export class NoOpGatekeeper implements Gatekeeper {
     };
   }
 
-  // Corrected implementation for WebSocket handler wrapper
   wsHandler(
     req: http.IncomingMessage | string,
     fn: (message: string) => Promise<void>,

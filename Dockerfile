@@ -1,6 +1,8 @@
 # Use an official Node runtime as the base image
 FROM node:18
 
+ENV ADMIN_TOKEN=meowmeow
+
 ARG GIT_COMMIT=unknown
 ENV GIT_COMMIT=$GIT_COMMIT
 

@@ -1,0 +1,62 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+          docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_ACCOUNT_URI }}
+
+      - name: Build and Push Docker Image to ECR
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ECR_ACCOUNT_URI }}/battlefront:latest
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            IMAGE=${{ secrets.AWS_ECR_ACCOUNT_URI }}/battlefront:latest
+
+            echo "Logging into ECR..."
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_ACCOUNT_URI }}
+
+            echo "Pulling new image..."
+            docker pull $IMAGE
+
+            echo "Stopping and removing old container (if running)..."
+            docker stop openfront || true
+            docker rm -f openfront || true
+
+            echo "Running new container..."
+            docker run -d \
+              --name openfront \
+              -p 80:80 -p 443:443 -p 3000-3006:3000-3006 \
+              -e ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }} \
+              -e REGION=${{ secrets.AWS_REGION }} \
+              -e GIT_COMMIT=auto-deploy-${{ github.sha }} \
+              -e GAME_ENV=prod \
+              -v /etc/letsencrypt:/etc/letsencrypt:ro \
+              -v /var/lib/letsencrypt:/var/lib/letsencrypt:ro \
+              $IMAGE

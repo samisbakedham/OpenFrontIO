@@ -50,14 +50,18 @@ else
     ENV="prod"
 fi
 
-# Check required environment variables
+UPPER_REGION=$(echo "$REGION" | tr '[:lower:]' '[:upper:]')
+SERVER_HOST_VAR="SERVER_HOST_${UPPER_REGION}"
+SERVER_HOST="${!SERVER_HOST_VAR}"
+
 if [ -z "$SERVER_HOST" ]; then
-    echo "Error: SERVER_HOST_${REGION^^} not defined in .env file or environment"
+    echo "Error: $SERVER_HOST_VAR not defined in .env file or environment"
     exit 1
 fi
 
+
 # Configuration
-SSH_KEY=${SSH_KEY:-"~/.ssh/id_rsa"}      # Use default or override from .env
+SSH_KEY=${EC2_KEY:-~/.ssh/id_rsa}    # Use default or override from .env
 DOCKER_USERNAME=${DOCKER_USERNAME} # Docker Hub username
 UPDATE_SCRIPT="./update.sh"                    # Path to your update script
 REMOTE_UPDATE_SCRIPT="/root/update-openfront.sh"  # Where to place the script on server

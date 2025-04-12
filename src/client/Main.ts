@@ -10,6 +10,7 @@ import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
+import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import GoogleAdElement from "./GoogleAdElement";
 import { HelpModal } from "./HelpModal";
@@ -17,6 +18,7 @@ import { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LangSelector } from "./LangSelector";
+import { LanguageModal } from "./LanguageModal";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
 import { SinglePlayerModal } from "./SinglePlayerModal";
@@ -25,7 +27,6 @@ import { UsernameInput } from "./UsernameInput";
 import { generateCryptoRandomUUID } from "./Utils";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { GameStartingModal } from "./gameStartingModal";
 import "./styles.css";
 
 import { ChatModal } from "./graphics/layers/ChatModal";
@@ -58,8 +59,14 @@ class Client {
     const langSelector = document.querySelector(
       "lang-selector",
     ) as LangSelector;
+    const LanguageModal = document.querySelector(
+      "lang-selector",
+    ) as LanguageModal;
     if (!langSelector) {
       consolex.warn("Lang selector element not found");
+    }
+    if (!LanguageModal) {
+      consolex.warn("Language modal element not found");
     }
 
     this.flagInput = document.querySelector("flag-input") as FlagInput;
@@ -185,6 +192,7 @@ class Client {
       this.gameStop();
     }
     const config = await getServerConfigFromClient();
+
     this.gameStop = joinLobby(
       {
         gameID: lobby.gameID,
@@ -200,18 +208,18 @@ class Client {
         gameRecord: lobby.gameRecord,
       },
       () => {
-        this.joinModal.close();
-        this.publicLobby.stop();
-        document.querySelectorAll(".ad").forEach((ad) => {
-          (ad as HTMLElement).style.display = "none";
-        });
-
-        // show when the game loads
         const startingModal = document.querySelector(
           "game-starting-modal",
         ) as GameStartingModal;
         startingModal instanceof GameStartingModal;
         startingModal.show();
+      },
+      () => {
+        this.joinModal.close();
+        this.publicLobby.stop();
+        document.querySelectorAll(".ad").forEach((ad) => {
+          (ad as HTMLElement).style.display = "none";
+        });
 
         if (event.detail.gameConfig?.gameType != GameType.Singleplayer) {
           window.history.pushState({}, "", `/join/${lobby.gameID}`);
