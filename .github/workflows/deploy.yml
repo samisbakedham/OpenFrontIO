@@ -37,13 +37,27 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            IMAGE_URI=${{ secrets.AWS_ECR_ACCOUNT_URI }}/battlefront:latest
+
+            # Login again from EC2
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
             docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_ACCOUNT_URI }}
 
+            # Stop and remove the old container if it exists
             docker stop openfront || true
             docker rm -f openfront || true
-            docker pull ${{ secrets.AWS_ECR_ACCOUNT_URI }}/battlefront:latest
 
+            # Pull the latest image
+            docker pull $IMAGE_URI
+
+            # Run the container with HTTPS volumes mounted
             docker run -d \
               --name openfront \
-              -p 80:80 -p 443:443 -p 3000-3006:3000-3006
+              -p 80:80 -p 443:443 -p 3000-3006:3000-3006 \
+              -e ADMIN_TOKEN=meowmeow \
+              -e REGION=${{ secrets.AWS_REGION }} \
+              -e GIT_COMMIT=auto-deploy-${{ github.sha }} \
+              -e GAME_ENV=prod \
+              -v /etc/letsencrypt:/etc/letsencrypt:ro \
+              -v /var/lib/letsencrypt:/var/lib/letsencrypt:ro \
+              $IMAGE_URI
