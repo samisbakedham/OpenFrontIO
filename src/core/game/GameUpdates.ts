@@ -1,6 +1,5 @@
 import { AllPlayersStats, ClientID, PlayerStats } from "../Schemas";
 import {
-  AllPlayers,
   EmojiMessage,
   GameUpdates,
   MessageType,
@@ -38,7 +37,6 @@ export enum GameUpdateType {
   Emoji,
   Win,
   Hash,
-  ChatMessage, // ✅ Added new GameUpdateType
 }
 
 export type GameUpdate =
@@ -53,8 +51,7 @@ export type GameUpdate =
   | TargetPlayerUpdate
   | EmojiUpdate
   | WinUpdate
-  | HashUpdate
-  | ChatMessageUpdate; // ✅ Added to union
+  | HashUpdate;
 
 export interface TileUpdateWrapper {
   type: GameUpdateType.Tile;
@@ -67,11 +64,12 @@ export interface UnitUpdate {
   troops: number;
   id: number;
   ownerID: number;
+  // TODO: make these tilerefs
   pos: TileRef;
   lastPos: TileRef;
   isActive: boolean;
-  dstPortId?: number;
-  detonationDst?: TileRef;
+  dstPortId?: number; // Only for trade ships
+  detonationDst?: TileRef; // Only for nukes
   warshipTargetId?: number;
   health?: number;
   constructionType?: UnitType;
@@ -162,6 +160,7 @@ export interface DisplayMessageUpdate {
 export interface WinUpdate {
   type: GameUpdateType.Win;
   allPlayersStats: AllPlayersStats;
+  // Player id or team name.
   winner: number | Team;
   winnerType: "player" | "team";
 }
@@ -170,13 +169,4 @@ export interface HashUpdate {
   type: GameUpdateType.Hash;
   tick: Tick;
   hash: number;
-}
-
-// ✅ New Chat Message structure
-export interface ChatMessageUpdate {
-  type: GameUpdateType.ChatMessage;
-  senderID: number;
-  recipientID: number | typeof AllPlayers;
-  message: string;
-  createdAt: Tick;
 }
