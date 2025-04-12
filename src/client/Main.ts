@@ -215,6 +215,7 @@ class Client {
         startingModal.show();
       },
       () => {
+        console.log("joinModal?", this.joinModal);
         this.joinModal?.close();
         this.publicLobby.stop();
         document.querySelectorAll(".ad").forEach((ad) => {
