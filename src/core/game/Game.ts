@@ -412,8 +412,6 @@ export interface Player {
   canBoat(tile: TileRef): boolean;
   tradingPorts(port: Unit): Unit[];
   displayQuickChat(sender: Player, recipient: Player, message: string);
-  // ✅ New chat method
-  sendChatMessage(recipient: Player | typeof AllPlayers, message: string): void;
 }
 
 export interface Game extends GameMap {
