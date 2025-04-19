@@ -14,6 +14,7 @@ import { EmojiTable } from "./layers/EmojiTable";
 import { EventsDisplay } from "./layers/EventsDisplay";
 import { Layer } from "./layers/Layer";
 import { Leaderboard } from "./layers/Leaderboard";
+import { MultiTabModal } from "./layers/MultiTabModal";
 import { NameLayer } from "./layers/NameLayer";
 import { OptionsMenu } from "./layers/OptionsMenu";
 import { PlayerInfoOverlay } from "./layers/PlayerInfoOverlay";
@@ -135,12 +136,15 @@ export function createRenderer(
   playerPanel.eventBus = eventBus;
   playerPanel.emojiTable = emojiTable;
 
-  const chatModal = document.querySelector("chat-modal") as ChatModal;
-  if (!(chatModal instanceof ChatModal)) {
-    console.error("chat modal not found");
+
+  const multiTabModal = document.querySelector(
+    "multi-tab-modal",
+  ) as MultiTabModal;
+  if (!(multiTabModal instanceof MultiTabModal)) {
+    console.error("multi-tab modal not found");
   }
-  chatModal.g = game;
-  chatModal.eventBus = eventBus;
+  multiTabModal.game = game;
+
 
   const layers: Layer[] = [
     new TerrainLayer(game, transformHandler),
@@ -171,6 +175,7 @@ export function createRenderer(
     optionsMenu,
     topBar,
     playerPanel,
+    multiTabModal,
   ];
 
   return new GameRenderer(
