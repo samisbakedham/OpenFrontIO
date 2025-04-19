@@ -7,14 +7,11 @@ import { RefreshGraphicsEvent as RedrawGraphicsEvent } from "../InputHandler";
 import { TransformHandler } from "./TransformHandler";
 import { UIState } from "./UIState";
 import { BuildMenu } from "./layers/BuildMenu";
-import { ChatDisplay } from "./layers/ChatDisplay";
-import { ChatModal } from "./layers/ChatModal";
 import { ControlPanel } from "./layers/ControlPanel";
 import { EmojiTable } from "./layers/EmojiTable";
 import { EventsDisplay } from "./layers/EventsDisplay";
 import { Layer } from "./layers/Layer";
 import { Leaderboard } from "./layers/Leaderboard";
-import { MultiTabModal } from "./layers/MultiTabModal";
 import { NameLayer } from "./layers/NameLayer";
 import { OptionsMenu } from "./layers/OptionsMenu";
 import { PlayerInfoOverlay } from "./layers/PlayerInfoOverlay";
@@ -89,14 +86,6 @@ export function createRenderer(
   eventsDisplay.game = game;
   eventsDisplay.clientID = clientID;
 
-  const chatDisplay = document.querySelector("chat-display") as ChatDisplay;
-  if (!(eventsDisplay instanceof ChatDisplay)) {
-    consolex.error("chat display not found");
-  }
-  chatDisplay.eventBus = eventBus;
-  chatDisplay.game = game;
-  chatDisplay.clientID = clientID;
-
   const playerInfo = document.querySelector(
     "player-info-overlay",
   ) as PlayerInfoOverlay;
@@ -136,16 +125,6 @@ export function createRenderer(
   playerPanel.eventBus = eventBus;
   playerPanel.emojiTable = emojiTable;
 
-
-  const multiTabModal = document.querySelector(
-    "multi-tab-modal",
-  ) as MultiTabModal;
-  if (!(multiTabModal instanceof MultiTabModal)) {
-    console.error("multi-tab modal not found");
-  }
-  multiTabModal.game = game;
-
-
   const layers: Layer[] = [
     new TerrainLayer(game, transformHandler),
     new TerritoryLayer(game, eventBus),
@@ -154,7 +133,6 @@ export function createRenderer(
     new UILayer(game, eventBus, clientID, transformHandler),
     new NameLayer(game, transformHandler, clientID),
     eventsDisplay,
-    chatDisplay,
     buildMenu,
     new RadialMenu(
       eventBus,

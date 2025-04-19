@@ -30,8 +30,6 @@ import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 import "./styles.css";
 
-import { ChatModal } from "./graphics/layers/ChatModal";
-
 export interface JoinLobbyEvent {
   clientID: string;
   // Multiplayer games only have gameID, gameConfig is not known until game starts.
@@ -113,12 +111,6 @@ class Client {
       if (this.usernameInput.isValid()) {
         spModal.open();
       }
-    });
-
-    const ctModal = document.querySelector("chat-modal") as ChatModal;
-    ctModal instanceof ChatModal;
-    document.getElementById("chat-button").addEventListener("click", () => {
-      ctModal.open();
     });
 
     const hlpModal = document.querySelector("help-modal") as HelpModal;
