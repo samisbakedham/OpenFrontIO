@@ -126,13 +126,17 @@ export function createRenderer(
   playerPanel.eventBus = eventBus;
   playerPanel.emojiTable = emojiTable;
 
-  const multiTabModal = document.querySelector(
-    "multi-tab-modal",
-  ) as MultiTabModal;
-  if (!(multiTabModal instanceof MultiTabModal)) {
-    console.error("multi-tab modal not found");
-  }
-  multiTabModal.game = game;
+  const multiTabModal = document.querySelector("multi-tab-modal");
+
+if (
+  multiTabModal &&
+  typeof (multiTabModal as any).game !== "undefined"
+) {
+  (multiTabModal as any).game = game;
+} else {
+  console.warn("multi-tab modal not found or missing `.game` property");
+}
+
 
   const layers: Layer[] = [
     new TerrainLayer(game, transformHandler),
