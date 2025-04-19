@@ -34,109 +34,114 @@ export function createRenderer(
   clientID: ClientID,
 ): GameRenderer {
   const transformHandler = new TransformHandler(game, eventBus, canvas);
-
   const uiState = { attackRatio: 20 };
 
-  //hide when the game renders
   const startingModal = document.querySelector(
     "game-starting-modal",
   ) as GameStartingModal;
   startingModal.hide();
 
-  // TODO maybe append this to dcoument instead of querying for them?
   const emojiTable = document.querySelector("emoji-table") as EmojiTable;
   if (!emojiTable || !(emojiTable instanceof EmojiTable)) {
     consolex.error("EmojiTable element not found in the DOM");
+  } else {
+    emojiTable.eventBus = eventBus;
+    emojiTable.transformHandler = transformHandler;
+    emojiTable.game = game;
+    emojiTable.initEventBus();
   }
-  emojiTable.eventBus = eventBus;
-  emojiTable.transformHandler = transformHandler;
-  emojiTable.game = game;
-  emojiTable.initEventBus();
 
   const buildMenu = document.querySelector("build-menu") as BuildMenu;
   if (!buildMenu || !(buildMenu instanceof BuildMenu)) {
     consolex.error("BuildMenu element not found in the DOM");
+  } else {
+    buildMenu.game = game;
+    buildMenu.eventBus = eventBus;
   }
-  buildMenu.game = game;
-  buildMenu.eventBus = eventBus;
 
   const leaderboard = document.querySelector("leader-board") as Leaderboard;
-  if (!emojiTable || !(leaderboard instanceof Leaderboard)) {
-    consolex.error("EmojiTable element not found in the DOM");
+  if (!leaderboard || !(leaderboard instanceof Leaderboard)) {
+    consolex.error("Leaderboard element not found in the DOM");
+  } else {
+    leaderboard.clientID = clientID;
+    leaderboard.eventBus = eventBus;
+    leaderboard.game = game;
   }
-  leaderboard.clientID = clientID;
-  leaderboard.eventBus = eventBus;
-  leaderboard.game = game;
 
   const controlPanel = document.querySelector("control-panel") as ControlPanel;
   if (!(controlPanel instanceof ControlPanel)) {
     consolex.error("ControlPanel element not found in the DOM");
+  } else {
+    controlPanel.clientID = clientID;
+    controlPanel.eventBus = eventBus;
+    controlPanel.uiState = uiState;
+    controlPanel.game = game;
   }
-  controlPanel.clientID = clientID;
-  controlPanel.eventBus = eventBus;
-  controlPanel.uiState = uiState;
-  controlPanel.game = game;
 
   const eventsDisplay = document.querySelector(
     "events-display",
   ) as EventsDisplay;
   if (!(eventsDisplay instanceof EventsDisplay)) {
     consolex.error("events display not found");
+  } else {
+    eventsDisplay.eventBus = eventBus;
+    eventsDisplay.game = game;
+    eventsDisplay.clientID = clientID;
   }
-  eventsDisplay.eventBus = eventBus;
-  eventsDisplay.game = game;
-  eventsDisplay.clientID = clientID;
 
   const playerInfo = document.querySelector(
     "player-info-overlay",
   ) as PlayerInfoOverlay;
   if (!(playerInfo instanceof PlayerInfoOverlay)) {
     consolex.error("player info overlay not found");
+  } else {
+    playerInfo.eventBus = eventBus;
+    playerInfo.clientID = clientID;
+    playerInfo.transform = transformHandler;
+    playerInfo.game = game;
   }
-  playerInfo.eventBus = eventBus;
-  playerInfo.clientID = clientID;
-  playerInfo.transform = transformHandler;
-  playerInfo.game = game;
 
   const winModel = document.querySelector("win-modal") as WinModal;
   if (!(winModel instanceof WinModal)) {
     console.error("win modal not found");
+  } else {
+    winModel.eventBus = eventBus;
+    winModel.game = game;
   }
-  winModel.eventBus = eventBus;
-  winModel.game = game;
 
   const optionsMenu = document.querySelector("options-menu") as OptionsMenu;
   if (!(optionsMenu instanceof OptionsMenu)) {
     console.error("options menu not found");
+  } else {
+    optionsMenu.eventBus = eventBus;
+    optionsMenu.game = game;
   }
-  optionsMenu.eventBus = eventBus;
-  optionsMenu.game = game;
 
   const topBar = document.querySelector("top-bar") as TopBar;
   if (!(topBar instanceof TopBar)) {
     console.error("top bar not found");
+  } else {
+    topBar.game = game;
   }
-  topBar.game = game;
 
   const playerPanel = document.querySelector("player-panel") as PlayerPanel;
   if (!(playerPanel instanceof PlayerPanel)) {
     console.error("player panel not found");
+  } else {
+    playerPanel.g = game;
+    playerPanel.eventBus = eventBus;
+    playerPanel.emojiTable = emojiTable;
   }
-  playerPanel.g = game;
-  playerPanel.eventBus = eventBus;
-  playerPanel.emojiTable = emojiTable;
 
   const multiTabModal = document.querySelector("multi-tab-modal");
 
-if (
-  multiTabModal &&
-  typeof (multiTabModal as any).game !== "undefined"
-) {
-  (multiTabModal as any).game = game;
-} else {
-  console.warn("multi-tab modal not found or missing `.game` property");
-}
-
+  let validMultiTabLayer: Layer | null = null;
+  if (multiTabModal && "game" in multiTabModal) {
+    (multiTabModal as any).game = game;
+    validMultiTabLayer = multiTabModal as unknown as Layer;
+  } else {
+    console.warn("multi-tab modal not found or missing `.game` property");
+  }
 
   const layers: Layer[] = [
     new TerrainLayer(game, transformHandler),
@@ -166,8 +171,11 @@ if (
     optionsMenu,
     topBar,
     playerPanel,
-    multiTabModal,
   ];
+
+  if (validMultiTabLayer) {
+    layers.push(validMultiTabLayer);
+  }
 
   return new GameRenderer(
     game,
@@ -194,12 +202,8 @@ export class GameRenderer {
   }
 
   initialize() {
-    this.eventBus.on(RedrawGraphicsEvent, (e) => {
-      this.layers.forEach((l) => {
-        if (l.redraw) {
-          l.redraw();
-        }
-      });
+    this.eventBus.on(RedrawGraphicsEvent, () => {
+      this.layers.forEach((l) => l.redraw?.());
     });
 
     this.layers.forEach((l) => l.init?.());
@@ -220,12 +224,11 @@ export class GameRenderer {
   resizeCanvas() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-    //this.redraw()
   }
 
   renderGame() {
     const start = performance.now();
-    // Set background
+
     this.context.fillStyle = this.game
       .config()
       .theme()
@@ -233,9 +236,7 @@ export class GameRenderer {
       .toHex();
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Save the current context state
     this.context.save();
-
     this.transformHandler.handleTransform(this.context);
 
     this.layers.forEach((l) => {
