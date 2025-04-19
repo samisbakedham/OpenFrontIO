@@ -25,6 +25,8 @@ import { TopBar } from "./layers/TopBar";
 import { UILayer } from "./layers/UILayer";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
+import { MultiTabModal } from "./layers/MultiTabModal";
+
 
 export function createRenderer(
   canvas: HTMLCanvasElement,
