@@ -224,15 +224,16 @@ class Client {
             close?: () => void;
             isModalOpen?: boolean;
           };
-          if (modal?.close) {
-            modal.close();
-          } else if ("isModalOpen" in modal) {
-            modal.isModalOpen = false;
+        
+          if (modal) {
+            if (modal.close) {
+              modal.close();
+            } else if ("isModalOpen" in modal) {
+              modal.isModalOpen = false;
+            }
+          } else {
+            consolex.warn(`Modal not found for tag: ${tag}`);
           }
-        });
-        this.publicLobby.stop();
-        document.querySelectorAll(".ad").forEach((ad) => {
-          (ad as HTMLElement).style.display = "none";
         });
 
         // show when the game loads
