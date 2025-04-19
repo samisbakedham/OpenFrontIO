@@ -12,6 +12,7 @@ import { EmojiTable } from "./layers/EmojiTable";
 import { EventsDisplay } from "./layers/EventsDisplay";
 import { Layer } from "./layers/Layer";
 import { Leaderboard } from "./layers/Leaderboard";
+import { MultiTabModal } from "./layers/MultiTabModal";
 import { NameLayer } from "./layers/NameLayer";
 import { OptionsMenu } from "./layers/OptionsMenu";
 import { PlayerInfoOverlay } from "./layers/PlayerInfoOverlay";
@@ -25,8 +26,6 @@ import { TopBar } from "./layers/TopBar";
 import { UILayer } from "./layers/UILayer";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
-import { MultiTabModal } from "./layers/MultiTabModal";
-
 
 export function createRenderer(
   canvas: HTMLCanvasElement,
@@ -126,6 +125,14 @@ export function createRenderer(
   playerPanel.g = game;
   playerPanel.eventBus = eventBus;
   playerPanel.emojiTable = emojiTable;
+
+  const multiTabModal = document.querySelector(
+    "multi-tab-modal",
+  ) as MultiTabModal;
+  if (!(multiTabModal instanceof MultiTabModal)) {
+    console.error("multi-tab modal not found");
+  }
+  multiTabModal.game = game;
 
   const layers: Layer[] = [
     new TerrainLayer(game, transformHandler),
