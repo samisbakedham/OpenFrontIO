@@ -396,7 +396,7 @@ export class DefaultConfig implements Config {
     return 80;
   }
   boatMaxNumber(): number {
-    return 3;
+    return 9;
   }
   numSpawnPhaseTurns(): number {
     return this._gameConfig.gameType == GameType.Singleplayer ? 100 : 300;
@@ -679,5 +679,33 @@ export class DefaultConfig implements Config {
 
   structureMinDist(): number {
     return 18;
+  }
+
+  shellLifetime(): number {
+    return 50;
+  }
+
+  warshipPatrolRange(): number {
+    return 100;
+  }
+
+  warshipTargettingRange(): number {
+    return 130;
+  }
+
+  warshipShellAttackRate(): number {
+    return 20;
+  }
+
+  defensePostShellAttackRate(): number {
+    return 100;
+  }
+
+  safeFromPiratesCooldownMax(): number {
+    return 20;
+  }
+
+  defensePostTargettingRange(): number {
+    return 75;
   }
 }
