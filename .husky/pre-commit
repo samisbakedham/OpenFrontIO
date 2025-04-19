@@ -1,1 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run tests first
+npm run test || {
+  echo "Tests failed - commit aborted"
+  exit 1
+}
+
+# Then run lint-staged if tests pass
 npx lint-staged

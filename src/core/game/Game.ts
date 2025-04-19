@@ -40,6 +40,11 @@ export enum Difficulty {
 export enum Team {
   Red = "Red",
   Blue = "Blue",
+  Teal = "Teal",
+  Purple = "Purple",
+  Yellow = "Yellow",
+  Orange = "Orange",
+  Green = "Green",
   Bot = "Bot",
 }
 
@@ -62,6 +67,7 @@ export enum GameMapType {
   Japan = "Japan",
   BetweenTwoSeas = "Between Two Seas",
   KnownWorld = "Known World",
+  FaroeIslands = "FaroeIslands",
 }
 
 export enum GameType {
@@ -309,6 +315,7 @@ export interface Player {
   // State & Properties
   isAlive(): boolean;
   isTraitor(): boolean;
+  markTraitor(): void;
   largestClusterBoundingBox: { min: Cell; max: Cell } | null;
   lastTileChange(): Tick;
 
@@ -340,6 +347,7 @@ export interface Player {
   // Units
   units(...types: UnitType[]): Unit[];
   unitsIncludingConstruction(type: UnitType): Unit[];
+  buildableUnits(tile: TileRef): BuildableUnit[];
   canBuild(type: UnitType, targetTile: TileRef): TileRef | false;
   buildUnit(
     type: UnitType,
@@ -409,7 +417,7 @@ export interface Player {
   // Misc
   toUpdate(): PlayerUpdate;
   playerProfile(): PlayerProfile;
-  canBoat(tile: TileRef): boolean;
+  canBoat(tile: TileRef): TileRef | false;
   tradingPorts(port: Unit): Unit[];
 }
 
@@ -467,7 +475,7 @@ export interface Game extends GameMap {
 }
 
 export interface PlayerActions {
-  canBoat: boolean;
+  canBoat: TileRef | false;
   canAttack: boolean;
   buildableUnits: BuildableUnit[];
   canSendEmojiAllPlayers: boolean;
